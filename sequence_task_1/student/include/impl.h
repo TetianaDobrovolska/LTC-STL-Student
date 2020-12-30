@@ -52,14 +52,14 @@ public:
     /** @todo Constructor from any reversible sequence container */
     template<class InputContainer>
     StaticPlaylist<Container>(const InputContainer& inputData)
-        : m_tracklist(inputData.cbegin(), inputData.cend())
+        : m_tracklist(inputData.crbegin(), inputData.crend())
     { }
 
     /** @todo Assignment from any reversible sequence container */
     template<class InputContainer>
     StaticPlaylist<Container>& operator=(const InputContainer& inputData)
     {
-        m_tracklist.assign(inputData.cbegin(), inputData.cend());
+        m_tracklist.assign(inputData.crbegin(), inputData.crend());
         return *this;
     }
 
@@ -67,13 +67,15 @@ public:
     template<class... Args>
     const Song& play(Args&&... songData)
     {
-        return *m_tracklist.insert(begin(), Song{songData}...);
+        m_tracklist.emplace_back(std::forward<Args>(songData)...);
+        return current();
     }
 
     /** @todo Add track */
     const Song& play(const Song& song)
     {
-        return *m_tracklist.insert(begin(), song);
+        m_tracklist.emplace_back(song);
+        return current();
     }
 
     /** @todo Get first track in playlist stack */
@@ -83,7 +85,7 @@ public:
         {
             throw std::out_of_range("");
         }
-        return m_tracklist.front();
+        return m_tracklist.back();
     }
 
     /** @todo Skip to the next track in playlist, remove current */
@@ -93,7 +95,7 @@ public:
         {
             throw std::out_of_range("");
         }
-        m_tracklist.erase(m_tracklist.begin());
+        m_tracklist.pop_back();
     }
 
     /** @todo Amount of tracks in playlist */
